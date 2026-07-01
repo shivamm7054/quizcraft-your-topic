@@ -40,6 +40,9 @@ function Home() {
   const [questions, setQuestions] = useState<QuizQuestion[]>([]);
   const [current, setCurrent] = useState(0);
   const [answers, setAnswers] = useState<number[]>([]);
+  const [saved, setSaved] = useState(false);
+  const { user } = useAuth();
+  const navigate = useNavigate();
 
   const mutation = useMutation({
     mutationFn: (vars: { topic: string; count: number; difficulty: "easy" | "medium" | "hard" }) =>
@@ -48,9 +51,20 @@ function Home() {
       setQuestions(res.questions);
       setAnswers(new Array(res.questions.length).fill(-1));
       setCurrent(0);
+      setSaved(false);
       setStage("exam");
     },
     onError: (err: Error) => toast.error(err.message || "Failed to generate quiz"),
+  });
+
+  const saveMutation = useMutation({
+    mutationFn: (payload: Parameters<typeof saveQuizResult>[0]["data"]) =>
+      saveQuizResult({ data: payload }),
+    onSuccess: () => {
+      setSaved(true);
+      toast.success("Result saved to your history.");
+    },
+    onError: (e: Error) => toast.error(e.message || "Failed to save result"),
   });
 
   const start = (e: React.FormEvent) => {
@@ -67,12 +81,32 @@ function Home() {
     setQuestions([]);
     setAnswers([]);
     setCurrent(0);
+    setSaved(false);
   };
 
   const score = answers.reduce(
     (s, a, i) => (a === questions[i]?.correctIndex ? s + 1 : s),
     0,
   );
+
+  const submitExam = () => {
+    setStage("results");
+    if (user && !saved) {
+      saveMutation.mutate({
+        topic: topic.trim(),
+        difficulty,
+        score: answers.reduce((s, a, i) => (a === questions[i]?.correctIndex ? s + 1 : s), 0),
+        totalQuestions: questions.length,
+        questions,
+        answers,
+      });
+    }
+  };
+
+  const signOut = async () => {
+    await supabase.auth.signOut();
+    toast.success("Signed out.");
+  };
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-background via-background to-accent/30">
@@ -85,9 +119,27 @@ function Home() {
             </div>
             <span className="text-lg font-semibold tracking-tight">QuizForge</span>
           </div>
-          <span className="text-xs text-muted-foreground">AI-generated exams</span>
+          <nav className="flex items-center gap-2">
+            {user ? (
+              <>
+                <Button asChild variant="ghost" size="sm">
+                  <Link to="/_authenticated/history" {...({} as never)}>
+                    <History className="mr-2 h-4 w-4" /> History
+                  </Link>
+                </Button>
+                <Button variant="ghost" size="sm" onClick={signOut}>
+                  <LogOut className="mr-2 h-4 w-4" /> Sign out
+                </Button>
+              </>
+            ) : (
+              <Button variant="outline" size="sm" onClick={() => navigate({ to: "/auth" })}>
+                <LogIn className="mr-2 h-4 w-4" /> Sign in
+              </Button>
+            )}
+          </nav>
         </div>
       </header>
+
 
       <main className="mx-auto max-w-3xl px-6 py-10">
         {stage === "setup" && (
