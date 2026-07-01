@@ -14,6 +14,89 @@ export type Database = {
   }
   public: {
     Tables: {
+      exam_submissions: {
+        Row: {
+          answers: Json
+          created_at: string
+          exam_id: string
+          id: string
+          score: number
+          student_name: string
+          submitted_at: string
+          total_questions: number
+        }
+        Insert: {
+          answers: Json
+          created_at?: string
+          exam_id: string
+          id?: string
+          score: number
+          student_name: string
+          submitted_at?: string
+          total_questions: number
+        }
+        Update: {
+          answers?: Json
+          created_at?: string
+          exam_id?: string
+          id?: string
+          score?: number
+          student_name?: string
+          submitted_at?: string
+          total_questions?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "exam_submissions_exam_id_fkey"
+            columns: ["exam_id"]
+            isOneToOne: false
+            referencedRelation: "exams"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      exams: {
+        Row: {
+          code: string
+          created_at: string
+          ends_at: string | null
+          host_user_id: string
+          id: string
+          questions: Json
+          started_at: string | null
+          status: string
+          time_limit_seconds: number
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          code: string
+          created_at?: string
+          ends_at?: string | null
+          host_user_id: string
+          id?: string
+          questions: Json
+          started_at?: string | null
+          status?: string
+          time_limit_seconds: number
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          code?: string
+          created_at?: string
+          ends_at?: string | null
+          host_user_id?: string
+          id?: string
+          questions?: Json
+          started_at?: string | null
+          status?: string
+          time_limit_seconds?: number
+          title?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       quiz_results: {
         Row: {
           answers: Json
