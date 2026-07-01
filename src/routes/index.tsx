@@ -58,14 +58,21 @@ function Home() {
   });
 
   const saveMutation = useMutation({
-    mutationFn: (payload: Parameters<typeof saveQuizResult>[0]["data"]) =>
-      saveQuizResult({ data: payload }),
+    mutationFn: (payload: {
+      topic: string;
+      difficulty: "easy" | "medium" | "hard";
+      score: number;
+      totalQuestions: number;
+      questions: QuizQuestion[];
+      answers: number[];
+    }) => saveQuizResult({ data: payload }),
     onSuccess: () => {
       setSaved(true);
       toast.success("Result saved to your history.");
     },
     onError: (e: Error) => toast.error(e.message || "Failed to save result"),
   });
+
 
   const start = (e: React.FormEvent) => {
     e.preventDefault();
@@ -123,10 +130,11 @@ function Home() {
             {user ? (
               <>
                 <Button asChild variant="ghost" size="sm">
-                  <Link to="/_authenticated/history" {...({} as never)}>
+                  <Link to="/history">
                     <History className="mr-2 h-4 w-4" /> History
                   </Link>
                 </Button>
+
                 <Button variant="ghost" size="sm" onClick={signOut}>
                   <LogOut className="mr-2 h-4 w-4" /> Sign out
                 </Button>
