@@ -83,6 +83,26 @@ export const getExam = createServerFn({ method: "GET" })
     return { exam, submissions: subs ?? [] };
   });
 
+export const getExamResults = createServerFn({ method: "GET" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((data) => z.object({ id: z.string().uuid() }).parse(data))
+  .handler(async ({ data, context }) => {
+    const { data: exam, error } = await context.supabase
+      .from("exams")
+      .select("id, title, questions, host_user_id")
+      .eq("id", data.id)
+      .single();
+    if (error) throw new Error(error.message);
+    if (exam.host_user_id !== context.userId) throw new Error("Not authorized");
+    const { data: subs, error: sErr } = await context.supabase
+      .from("exam_submissions")
+      .select("id, student_name, score, total_questions, answers, submitted_at")
+      .eq("exam_id", data.id)
+      .order("score", { ascending: false });
+    if (sErr) throw new Error(sErr.message);
+    return { exam, submissions: subs ?? [] };
+  });
+
 export const startExam = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((data) => z.object({ id: z.string().uuid() }).parse(data))
