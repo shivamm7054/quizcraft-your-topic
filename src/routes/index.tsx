@@ -243,8 +243,20 @@ function Home() {
             score={score}
             topic={topic}
             onRestart={reset}
+            saveStatus={
+              !user
+                ? "signed-out"
+                : saveMutation.isPending
+                  ? "saving"
+                  : saved
+                    ? "saved"
+                    : saveMutation.isError
+                      ? "error"
+                      : "idle"
+            }
           />
         )}
+
       </main>
     </div>
   );
