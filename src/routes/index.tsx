@@ -1,7 +1,7 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useState } from "react";
 import { useMutation } from "@tanstack/react-query";
-import { Brain, Sparkles, RotateCcw, Check, X, Loader2, LogIn, LogOut, History } from "lucide-react";
+import { Brain, Sparkles, RotateCcw, Check, X, Loader2, LogIn, LogOut, History, Users, KeyRound } from "lucide-react";
 import { generateQuiz, type QuizQuestion } from "@/lib/quiz.functions";
 import { saveQuizResult } from "@/lib/quiz-results.functions";
 import { supabase } from "@/integrations/supabase/client";
@@ -126,15 +126,18 @@ function Home() {
             </div>
             <span className="text-lg font-semibold tracking-tight">QuizForge</span>
           </div>
-          <nav className="flex items-center gap-2">
+          <nav className="flex items-center gap-1 sm:gap-2">
+            <Button asChild variant="ghost" size="sm">
+              <Link to="/join"><KeyRound className="mr-2 h-4 w-4" /> Join Exam</Link>
+            </Button>
             {user ? (
               <>
                 <Button asChild variant="ghost" size="sm">
-                  <Link to="/history">
-                    <History className="mr-2 h-4 w-4" /> History
-                  </Link>
+                  <Link to="/exams"><Users className="mr-2 h-4 w-4" /> Host</Link>
                 </Button>
-
+                <Button asChild variant="ghost" size="sm">
+                  <Link to="/history"><History className="mr-2 h-4 w-4" /> History</Link>
+                </Button>
                 <Button variant="ghost" size="sm" onClick={signOut}>
                   <LogOut className="mr-2 h-4 w-4" /> Sign out
                 </Button>
