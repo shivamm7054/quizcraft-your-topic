@@ -1,8 +1,11 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useState } from "react";
 import { useMutation } from "@tanstack/react-query";
-import { Brain, Sparkles, RotateCcw, Check, X, Loader2 } from "lucide-react";
+import { Brain, Sparkles, RotateCcw, Check, X, Loader2, LogIn, LogOut, History } from "lucide-react";
 import { generateQuiz, type QuizQuestion } from "@/lib/quiz.functions";
+import { saveQuizResult } from "@/lib/quiz-results.functions";
+import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/hooks/use-auth";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -13,6 +16,7 @@ import { Progress } from "@/components/ui/progress";
 import { toast } from "sonner";
 import { Toaster } from "@/components/ui/sonner";
 import { cn } from "@/lib/utils";
+
 
 export const Route = createFileRoute("/")({
   head: () => ({
