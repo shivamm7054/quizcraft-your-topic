@@ -324,13 +324,14 @@ function ExamView({
 }
 
 function ResultsView({
-  questions, answers, score, topic, onRestart,
+  questions, answers, score, topic, onRestart, saveStatus,
 }: {
   questions: QuizQuestion[];
   answers: number[];
   score: number;
   topic: string;
   onRestart: () => void;
+  saveStatus: "idle" | "saving" | "saved" | "error" | "signed-out";
 }) {
   const pct = Math.round((score / questions.length) * 100);
   const verdict = pct >= 80 ? "Excellent!" : pct >= 60 ? "Nice work." : pct >= 40 ? "Keep practicing." : "Let's try again.";
@@ -345,11 +346,22 @@ function ResultsView({
         <CardContent className="text-center">
           <div className="text-6xl font-bold text-primary">{score}<span className="text-2xl text-muted-foreground">/{questions.length}</span></div>
           <p className="mt-2 text-muted-foreground">{pct}% correct</p>
+          <div className="mt-4 text-xs text-muted-foreground">
+            {saveStatus === "saving" && <span className="inline-flex items-center"><Loader2 className="mr-1 h-3 w-3 animate-spin" /> Saving to history…</span>}
+            {saveStatus === "saved" && <span className="text-green-600">✓ Saved to your history</span>}
+            {saveStatus === "error" && <span className="text-destructive">Couldn&apos;t save to history</span>}
+            {saveStatus === "signed-out" && (
+              <span>
+                <Link to="/auth" className="text-primary underline">Sign in</Link> to save your results.
+              </span>
+            )}
+          </div>
           <Button onClick={onRestart} className="mt-6" size="lg">
             <RotateCcw className="mr-2 h-4 w-4" /> New Quiz
           </Button>
         </CardContent>
       </Card>
+
 
       <div className="space-y-3">
         <h3 className="text-lg font-semibold">Review</h3>
