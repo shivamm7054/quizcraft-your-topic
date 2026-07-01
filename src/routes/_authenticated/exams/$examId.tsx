@@ -40,19 +40,21 @@ function ExamDetail() {
     onError: (e: Error) => toast.error(e.message),
   });
 
-  if (isLoading || !data) {
-    return <div className="p-8 text-center text-muted-foreground">Loading…</div>;
-  }
-  const { exam, submissions } = data;
-  const joinUrl = typeof window !== "undefined" ? `${window.location.origin}/join?code=${exam.code}` : "";
-  const remainingMs = exam.ends_at ? new Date(exam.ends_at).getTime() - now : 0;
+  const exam = data?.exam;
+  const submissions = data?.submissions ?? [];
+  const remainingMs = exam?.ends_at ? new Date(exam.ends_at).getTime() - now : 0;
   const remainingSec = Math.max(0, Math.floor(remainingMs / 1000));
-  const mm = String(Math.floor(remainingSec / 60)).padStart(2, "0");
-  const ss = String(remainingSec % 60).padStart(2, "0");
 
   useEffect(() => {
-    if (exam.status === "active" && remainingSec === 0) refetch();
-  }, [exam.status, remainingSec, refetch]);
+    if (exam?.status === "active" && exam.ends_at && remainingSec === 0) refetch();
+  }, [exam?.status, exam?.ends_at, remainingSec, refetch]);
+
+  if (isLoading || !data || !exam) {
+    return <div className="p-8 text-center text-muted-foreground">Loading…</div>;
+  }
+  const joinUrl = typeof window !== "undefined" ? `${window.location.origin}/join?code=${exam.code}` : "";
+  const mm = String(Math.floor(remainingSec / 60)).padStart(2, "0");
+  const ss = String(remainingSec % 60).padStart(2, "0");
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-background via-background to-accent/30">
