@@ -1,8 +1,11 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useState } from "react";
 import { useMutation } from "@tanstack/react-query";
-import { Brain, Sparkles, RotateCcw, Check, X, Loader2 } from "lucide-react";
+import { Brain, Sparkles, RotateCcw, Check, X, Loader2, LogIn, LogOut, History } from "lucide-react";
 import { generateQuiz, type QuizQuestion } from "@/lib/quiz.functions";
+import { saveQuizResult } from "@/lib/quiz-results.functions";
+import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/hooks/use-auth";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -13,6 +16,7 @@ import { Progress } from "@/components/ui/progress";
 import { toast } from "sonner";
 import { Toaster } from "@/components/ui/sonner";
 import { cn } from "@/lib/utils";
+
 
 export const Route = createFileRoute("/")({
   head: () => ({
@@ -36,6 +40,9 @@ function Home() {
   const [questions, setQuestions] = useState<QuizQuestion[]>([]);
   const [current, setCurrent] = useState(0);
   const [answers, setAnswers] = useState<number[]>([]);
+  const [saved, setSaved] = useState(false);
+  const { user } = useAuth();
+  const navigate = useNavigate();
 
   const mutation = useMutation({
     mutationFn: (vars: { topic: string; count: number; difficulty: "easy" | "medium" | "hard" }) =>
@@ -44,10 +51,28 @@ function Home() {
       setQuestions(res.questions);
       setAnswers(new Array(res.questions.length).fill(-1));
       setCurrent(0);
+      setSaved(false);
       setStage("exam");
     },
     onError: (err: Error) => toast.error(err.message || "Failed to generate quiz"),
   });
+
+  const saveMutation = useMutation({
+    mutationFn: (payload: {
+      topic: string;
+      difficulty: "easy" | "medium" | "hard";
+      score: number;
+      totalQuestions: number;
+      questions: QuizQuestion[];
+      answers: number[];
+    }) => saveQuizResult({ data: payload }),
+    onSuccess: () => {
+      setSaved(true);
+      toast.success("Result saved to your history.");
+    },
+    onError: (e: Error) => toast.error(e.message || "Failed to save result"),
+  });
+
 
   const start = (e: React.FormEvent) => {
     e.preventDefault();
@@ -63,12 +88,32 @@ function Home() {
     setQuestions([]);
     setAnswers([]);
     setCurrent(0);
+    setSaved(false);
   };
 
   const score = answers.reduce(
     (s, a, i) => (a === questions[i]?.correctIndex ? s + 1 : s),
     0,
   );
+
+  const submitExam = () => {
+    setStage("results");
+    if (user && !saved) {
+      saveMutation.mutate({
+        topic: topic.trim(),
+        difficulty,
+        score: answers.reduce((s, a, i) => (a === questions[i]?.correctIndex ? s + 1 : s), 0),
+        totalQuestions: questions.length,
+        questions,
+        answers,
+      });
+    }
+  };
+
+  const signOut = async () => {
+    await supabase.auth.signOut();
+    toast.success("Signed out.");
+  };
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-background via-background to-accent/30">
@@ -81,9 +126,28 @@ function Home() {
             </div>
             <span className="text-lg font-semibold tracking-tight">QuizForge</span>
           </div>
-          <span className="text-xs text-muted-foreground">AI-generated exams</span>
+          <nav className="flex items-center gap-2">
+            {user ? (
+              <>
+                <Button asChild variant="ghost" size="sm">
+                  <Link to="/history">
+                    <History className="mr-2 h-4 w-4" /> History
+                  </Link>
+                </Button>
+
+                <Button variant="ghost" size="sm" onClick={signOut}>
+                  <LogOut className="mr-2 h-4 w-4" /> Sign out
+                </Button>
+              </>
+            ) : (
+              <Button variant="outline" size="sm" onClick={() => navigate({ to: "/auth" })}>
+                <LogIn className="mr-2 h-4 w-4" /> Sign in
+              </Button>
+            )}
+          </nav>
         </div>
       </header>
+
 
       <main className="mx-auto max-w-3xl px-6 py-10">
         {stage === "setup" && (
@@ -168,7 +232,7 @@ function Home() {
             }}
             onPrev={() => setCurrent((c) => Math.max(0, c - 1))}
             onNext={() => setCurrent((c) => Math.min(questions.length - 1, c + 1))}
-            onSubmit={() => setStage("results")}
+            onSubmit={submitExam}
           />
         )}
 
@@ -179,8 +243,20 @@ function Home() {
             score={score}
             topic={topic}
             onRestart={reset}
+            saveStatus={
+              !user
+                ? "signed-out"
+                : saveMutation.isPending
+                  ? "saving"
+                  : saved
+                    ? "saved"
+                    : saveMutation.isError
+                      ? "error"
+                      : "idle"
+            }
           />
         )}
+
       </main>
     </div>
   );
@@ -248,13 +324,14 @@ function ExamView({
 }
 
 function ResultsView({
-  questions, answers, score, topic, onRestart,
+  questions, answers, score, topic, onRestart, saveStatus,
 }: {
   questions: QuizQuestion[];
   answers: number[];
   score: number;
   topic: string;
   onRestart: () => void;
+  saveStatus: "idle" | "saving" | "saved" | "error" | "signed-out";
 }) {
   const pct = Math.round((score / questions.length) * 100);
   const verdict = pct >= 80 ? "Excellent!" : pct >= 60 ? "Nice work." : pct >= 40 ? "Keep practicing." : "Let's try again.";
@@ -269,11 +346,22 @@ function ResultsView({
         <CardContent className="text-center">
           <div className="text-6xl font-bold text-primary">{score}<span className="text-2xl text-muted-foreground">/{questions.length}</span></div>
           <p className="mt-2 text-muted-foreground">{pct}% correct</p>
+          <div className="mt-4 text-xs text-muted-foreground">
+            {saveStatus === "saving" && <span className="inline-flex items-center"><Loader2 className="mr-1 h-3 w-3 animate-spin" /> Saving to history…</span>}
+            {saveStatus === "saved" && <span className="text-green-600">✓ Saved to your history</span>}
+            {saveStatus === "error" && <span className="text-destructive">Couldn&apos;t save to history</span>}
+            {saveStatus === "signed-out" && (
+              <span>
+                <Link to="/auth" className="text-primary underline">Sign in</Link> to save your results.
+              </span>
+            )}
+          </div>
           <Button onClick={onRestart} className="mt-6" size="lg">
             <RotateCcw className="mr-2 h-4 w-4" /> New Quiz
           </Button>
         </CardContent>
       </Card>
+
 
       <div className="space-y-3">
         <h3 className="text-lg font-semibold">Review</h3>
