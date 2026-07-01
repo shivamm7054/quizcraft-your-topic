@@ -232,7 +232,7 @@ function Home() {
             }}
             onPrev={() => setCurrent((c) => Math.max(0, c - 1))}
             onNext={() => setCurrent((c) => Math.min(questions.length - 1, c + 1))}
-            onSubmit={() => setStage("results")}
+            onSubmit={submitExam}
           />
         )}
 
