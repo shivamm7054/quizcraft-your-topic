@@ -119,8 +119,19 @@ function ExamDetail() {
 
         <Card>
           <CardHeader>
-            <CardTitle>Submissions ({submissions.length})</CardTitle>
-            <CardDescription>Live leaderboard, ordered by score.</CardDescription>
+            <div className="flex items-start justify-between gap-4">
+              <div>
+                <CardTitle>Submissions ({submissions.length})</CardTitle>
+                <CardDescription>Live leaderboard, ordered by score.</CardDescription>
+              </div>
+              {submissions.length > 0 && (
+                <Button asChild size="sm" variant="outline">
+                  <Link to="/exams/$examId/results" params={{ examId }}>
+                    View detailed results
+                  </Link>
+                </Button>
+              )}
+            </div>
           </CardHeader>
           <CardContent>
             {submissions.length === 0 ? (
