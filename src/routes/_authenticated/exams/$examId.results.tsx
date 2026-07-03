@@ -156,12 +156,24 @@ function ResultsPage() {
         </Button>
 
         <Card className="mb-6 shadow-lg">
-          <CardHeader>
-            <CardTitle className="text-2xl">{exam.title}</CardTitle>
-            <CardDescription>
-              Detailed results · {submissions.length} student{submissions.length === 1 ? "" : "s"} ·{" "}
-              {questions.length} question{questions.length === 1 ? "" : "s"}
-            </CardDescription>
+          <CardHeader className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+            <div>
+              <CardTitle className="text-2xl">{exam.title}</CardTitle>
+              <CardDescription>
+                Detailed results · {submissions.length} student{submissions.length === 1 ? "" : "s"} ·{" "}
+                {questions.length} question{questions.length === 1 ? "" : "s"}
+              </CardDescription>
+            </div>
+            {submissions.length > 0 && (
+              <div className="flex gap-2">
+                <Button variant="outline" size="sm" onClick={exportCSV}>
+                  <Download className="mr-1 h-4 w-4" /> CSV
+                </Button>
+                <Button variant="outline" size="sm" onClick={exportPDF}>
+                  <FileText className="mr-1 h-4 w-4" /> PDF
+                </Button>
+              </div>
+            )}
           </CardHeader>
         </Card>
 
