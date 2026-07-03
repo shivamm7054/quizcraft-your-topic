@@ -3,7 +3,7 @@ import { z } from "zod";
 
 const InputSchema = z.object({
   topic: z.string().trim().min(2).max(120),
-  count: z.number().int().min(3).max(15).default(5),
+  count: z.number().int().min(1).max(50).default(5),
   difficulty: z.enum(["easy", "medium", "hard"]).default("medium"),
 });
 
