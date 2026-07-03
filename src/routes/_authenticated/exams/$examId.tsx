@@ -23,15 +23,9 @@ function ExamDetail() {
     refetchInterval: 5000,
   });
 
-  const [now, setNow] = useState(() => Date.now());
-  useEffect(() => {
-    const t = setInterval(() => setNow(Date.now()), 1000);
-    return () => clearInterval(t);
-  }, []);
-
   const start = useMutation({
     mutationFn: () => startExam({ data: { id: examId } }),
-    onSuccess: () => { toast.success("Exam started."); qc.invalidateQueries({ queryKey: ["exam", examId] }); },
+    onSuccess: () => { toast.success("Exam is now open. Each student's timer starts when they begin."); qc.invalidateQueries({ queryKey: ["exam", examId] }); },
     onError: (e: Error) => toast.error(e.message),
   });
   const stop = useMutation({
@@ -42,19 +36,12 @@ function ExamDetail() {
 
   const exam = data?.exam;
   const submissions = data?.submissions ?? [];
-  const remainingMs = exam?.ends_at ? new Date(exam.ends_at).getTime() - now : 0;
-  const remainingSec = Math.max(0, Math.floor(remainingMs / 1000));
-
-  useEffect(() => {
-    if (exam?.status === "active" && exam.ends_at && remainingSec === 0) refetch();
-  }, [exam?.status, exam?.ends_at, remainingSec, refetch]);
 
   if (isLoading || !data || !exam) {
     return <div className="p-8 text-center text-muted-foreground">Loading…</div>;
   }
   const joinUrl = typeof window !== "undefined" ? `${window.location.origin}/join?code=${exam.code}` : "";
-  const mm = String(Math.floor(remainingSec / 60)).padStart(2, "0");
-  const ss = String(remainingSec % 60).padStart(2, "0");
+  const minutes = Math.round(exam.time_limit_seconds / 60);
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-background via-background to-accent/30">
