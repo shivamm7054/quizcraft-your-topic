@@ -92,13 +92,15 @@ function ExamDetail() {
                 </Button>
               </div>
               <div className="rounded-lg border p-4">
-                <p className="text-xs uppercase text-muted-foreground">Time remaining</p>
-                <p className="mt-1 font-mono text-3xl font-bold">
-                  {exam.status === "active" ? `${mm}:${ss}` : exam.status === "ended" ? "Ended" : "Not started"}
+                <p className="text-xs uppercase text-muted-foreground">Per-student time limit</p>
+                <p className="mt-1 font-mono text-3xl font-bold">{minutes} min</p>
+                <p className="mt-2 text-xs text-muted-foreground">
+                  {exam.status === "active"
+                    ? "Each student's countdown starts when they open the exam."
+                    : exam.status === "ended"
+                      ? "Exam is closed. Students can no longer join."
+                      : "Click Start exam to open the join code."}
                 </p>
-                {exam.status === "active" && (
-                  <p className="mt-2 text-xs text-muted-foreground">Exam ends automatically at time limit.</p>
-                )}
               </div>
             </div>
           </CardContent>
