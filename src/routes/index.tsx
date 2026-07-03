@@ -185,15 +185,18 @@ function Home() {
 
                   <div className="grid gap-4 sm:grid-cols-2">
                     <div className="space-y-2">
-                      <Label>Questions</Label>
-                      <Select value={String(count)} onValueChange={(v) => setCount(Number(v))}>
-                        <SelectTrigger><SelectValue /></SelectTrigger>
-                        <SelectContent>
-                          {[3, 5, 7, 10, 15].map((n) => (
-                            <SelectItem key={n} value={String(n)}>{n} questions</SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
+                      <Label htmlFor="count">Questions</Label>
+                      <Input
+                        id="count"
+                        type="number"
+                        min={1}
+                        max={50}
+                        value={count}
+                        onChange={(e) => {
+                          const n = Number(e.target.value);
+                          setCount(Number.isFinite(n) ? Math.max(1, Math.min(50, Math.floor(n))) : 1);
+                        }}
+                      />
                     </div>
 
                     <div className="space-y-2">

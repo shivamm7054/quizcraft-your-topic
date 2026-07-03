@@ -155,12 +155,16 @@ function ExamsPage() {
                   </div>
                   <div className="space-y-2">
                     <Label>Count</Label>
-                    <Select value={String(aiCount)} onValueChange={(v) => setAiCount(Number(v))}>
-                      <SelectTrigger><SelectValue /></SelectTrigger>
-                      <SelectContent>
-                        {[3, 5, 7, 10, 15].map((n) => <SelectItem key={n} value={String(n)}>{n}</SelectItem>)}
-                      </SelectContent>
-                    </Select>
+                    <Input
+                      type="number"
+                      min={1}
+                      max={50}
+                      value={aiCount}
+                      onChange={(e) => {
+                        const n = Number(e.target.value);
+                        setAiCount(Number.isFinite(n) ? Math.max(1, Math.min(50, Math.floor(n))) : 1);
+                      }}
+                    />
                   </div>
                   <div className="space-y-2">
                     <Label>Difficulty</Label>
