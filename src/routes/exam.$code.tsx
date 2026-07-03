@@ -30,17 +30,32 @@ function TakeExam() {
   const [answers, setAnswers] = useState<number[]>([]);
   const [submitted, setSubmitted] = useState<{ score: number; total: number } | null>(null);
   const [now, setNow] = useState(Date.now());
+  const [startedAt, setStartedAt] = useState<number | null>(null);
 
   useEffect(() => {
     if (data && answers.length === 0) setAnswers(new Array(data.questions.length).fill(-1));
   }, [data, answers.length]);
+
+  // Per-student start time — persists across refresh so the clock can't be reset.
+  useEffect(() => {
+    if (!data) return;
+    const key = `exam-start-${data.id}-${studentName}`;
+    const existing = typeof window !== "undefined" ? sessionStorage.getItem(key) : null;
+    if (existing) {
+      setStartedAt(Number(existing));
+    } else {
+      const t = Date.now();
+      if (typeof window !== "undefined") sessionStorage.setItem(key, String(t));
+      setStartedAt(t);
+    }
+  }, [data, studentName]);
 
   useEffect(() => {
     const t = setInterval(() => setNow(Date.now()), 1000);
     return () => clearInterval(t);
   }, []);
 
-  const endsAt = data?.ends_at ? new Date(data.ends_at).getTime() : 0;
+  const endsAt = startedAt && data ? startedAt + data.time_limit_seconds * 1000 : 0;
   const remainingSec = Math.max(0, Math.floor((endsAt - now) / 1000));
 
   const submitMut = useMutation({

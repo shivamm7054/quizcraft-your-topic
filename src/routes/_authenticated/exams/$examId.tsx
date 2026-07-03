@@ -1,5 +1,5 @@
-import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
-import { useEffect, useState } from "react";
+import { createFileRoute, Link } from "@tanstack/react-router";
+
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { ArrowLeft, Play, Square, Copy, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -15,23 +15,16 @@ export const Route = createFileRoute("/_authenticated/exams/$examId")({
 
 function ExamDetail() {
   const { examId } = Route.useParams();
-  const navigate = useNavigate();
   const qc = useQueryClient();
-  const { data, isLoading, refetch } = useQuery({
+  const { data, isLoading } = useQuery({
     queryKey: ["exam", examId],
     queryFn: () => getExam({ data: { id: examId } }),
     refetchInterval: 5000,
   });
 
-  const [now, setNow] = useState(() => Date.now());
-  useEffect(() => {
-    const t = setInterval(() => setNow(Date.now()), 1000);
-    return () => clearInterval(t);
-  }, []);
-
   const start = useMutation({
     mutationFn: () => startExam({ data: { id: examId } }),
-    onSuccess: () => { toast.success("Exam started."); qc.invalidateQueries({ queryKey: ["exam", examId] }); },
+    onSuccess: () => { toast.success("Exam is now open. Each student's timer starts when they begin."); qc.invalidateQueries({ queryKey: ["exam", examId] }); },
     onError: (e: Error) => toast.error(e.message),
   });
   const stop = useMutation({
@@ -42,19 +35,12 @@ function ExamDetail() {
 
   const exam = data?.exam;
   const submissions = data?.submissions ?? [];
-  const remainingMs = exam?.ends_at ? new Date(exam.ends_at).getTime() - now : 0;
-  const remainingSec = Math.max(0, Math.floor(remainingMs / 1000));
-
-  useEffect(() => {
-    if (exam?.status === "active" && exam.ends_at && remainingSec === 0) refetch();
-  }, [exam?.status, exam?.ends_at, remainingSec, refetch]);
 
   if (isLoading || !data || !exam) {
     return <div className="p-8 text-center text-muted-foreground">Loading…</div>;
   }
   const joinUrl = typeof window !== "undefined" ? `${window.location.origin}/join?code=${exam.code}` : "";
-  const mm = String(Math.floor(remainingSec / 60)).padStart(2, "0");
-  const ss = String(remainingSec % 60).padStart(2, "0");
+  const minutes = Math.round(exam.time_limit_seconds / 60);
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-background via-background to-accent/30">
@@ -105,13 +91,15 @@ function ExamDetail() {
                 </Button>
               </div>
               <div className="rounded-lg border p-4">
-                <p className="text-xs uppercase text-muted-foreground">Time remaining</p>
-                <p className="mt-1 font-mono text-3xl font-bold">
-                  {exam.status === "active" ? `${mm}:${ss}` : exam.status === "ended" ? "Ended" : "Not started"}
+                <p className="text-xs uppercase text-muted-foreground">Per-student time limit</p>
+                <p className="mt-1 font-mono text-3xl font-bold">{minutes} min</p>
+                <p className="mt-2 text-xs text-muted-foreground">
+                  {exam.status === "active"
+                    ? "Each student's countdown starts when they open the exam."
+                    : exam.status === "ended"
+                      ? "Exam is closed. Students can no longer join."
+                      : "Click Start exam to open the join code."}
                 </p>
-                {exam.status === "active" && (
-                  <p className="mt-2 text-xs text-muted-foreground">Exam ends automatically at time limit.</p>
-                )}
               </div>
             </div>
           </CardContent>
