@@ -15,7 +15,6 @@ export const Route = createFileRoute("/_authenticated/exams/$examId")({
 
 function ExamDetail() {
   const { examId } = Route.useParams();
-  const navigate = useNavigate();
   const qc = useQueryClient();
   const { data, isLoading } = useQuery({
     queryKey: ["exam", examId],
