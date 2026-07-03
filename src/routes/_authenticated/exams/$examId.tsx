@@ -17,7 +17,7 @@ function ExamDetail() {
   const { examId } = Route.useParams();
   const navigate = useNavigate();
   const qc = useQueryClient();
-  const { data, isLoading, refetch } = useQuery({
+  const { data, isLoading } = useQuery({
     queryKey: ["exam", examId],
     queryFn: () => getExam({ data: { id: examId } }),
     refetchInterval: 5000,
