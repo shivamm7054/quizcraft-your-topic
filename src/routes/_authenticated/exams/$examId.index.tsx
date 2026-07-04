@@ -8,7 +8,7 @@ import { Toaster } from "@/components/ui/sonner";
 import { toast } from "sonner";
 import { endExam, getExam, startExam } from "@/lib/exams.functions";
 
-export const Route = createFileRoute("/_authenticated/exams/$examId")({
+export const Route = createFileRoute("/_authenticated/exams/$examId/")({
   head: () => ({ meta: [{ title: "Manage exam — QuizForge" }] }),
   component: ExamDetail,
 });
