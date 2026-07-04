@@ -16,7 +16,7 @@ import { Route as IndexRouteImport } from './routes/index'
 import { Route as ExamCodeRouteImport } from './routes/exam.$code'
 import { Route as AuthenticatedHistoryRouteImport } from './routes/_authenticated/history'
 import { Route as AuthenticatedExamsIndexRouteImport } from './routes/_authenticated/exams/index'
-import { Route as AuthenticatedExamsExamIdRouteImport } from './routes/_authenticated/exams/$examId'
+import { Route as AuthenticatedExamsExamIdIndexRouteImport } from './routes/_authenticated/exams/$examId.index'
 import { Route as AuthenticatedExamsExamIdResultsRouteImport } from './routes/_authenticated/exams/$examId.results'
 
 const JoinRoute = JoinRouteImport.update({
@@ -53,17 +53,17 @@ const AuthenticatedExamsIndexRoute = AuthenticatedExamsIndexRouteImport.update({
   path: '/exams/',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
-const AuthenticatedExamsExamIdRoute =
-  AuthenticatedExamsExamIdRouteImport.update({
-    id: '/exams/$examId',
-    path: '/exams/$examId',
+const AuthenticatedExamsExamIdIndexRoute =
+  AuthenticatedExamsExamIdIndexRouteImport.update({
+    id: '/exams/$examId/',
+    path: '/exams/$examId/',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
 const AuthenticatedExamsExamIdResultsRoute =
   AuthenticatedExamsExamIdResultsRouteImport.update({
-    id: '/results',
-    path: '/results',
-    getParentRoute: () => AuthenticatedExamsExamIdRoute,
+    id: '/exams/$examId/results',
+    path: '/exams/$examId/results',
+    getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
 
 export interface FileRoutesByFullPath {
@@ -72,9 +72,9 @@ export interface FileRoutesByFullPath {
   '/join': typeof JoinRoute
   '/history': typeof AuthenticatedHistoryRoute
   '/exam/$code': typeof ExamCodeRoute
-  '/exams/$examId': typeof AuthenticatedExamsExamIdRouteWithChildren
   '/exams/': typeof AuthenticatedExamsIndexRoute
   '/exams/$examId/results': typeof AuthenticatedExamsExamIdResultsRoute
+  '/exams/$examId/': typeof AuthenticatedExamsExamIdIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -82,9 +82,9 @@ export interface FileRoutesByTo {
   '/join': typeof JoinRoute
   '/history': typeof AuthenticatedHistoryRoute
   '/exam/$code': typeof ExamCodeRoute
-  '/exams/$examId': typeof AuthenticatedExamsExamIdRouteWithChildren
   '/exams': typeof AuthenticatedExamsIndexRoute
   '/exams/$examId/results': typeof AuthenticatedExamsExamIdResultsRoute
+  '/exams/$examId': typeof AuthenticatedExamsExamIdIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -94,9 +94,9 @@ export interface FileRoutesById {
   '/join': typeof JoinRoute
   '/_authenticated/history': typeof AuthenticatedHistoryRoute
   '/exam/$code': typeof ExamCodeRoute
-  '/_authenticated/exams/$examId': typeof AuthenticatedExamsExamIdRouteWithChildren
   '/_authenticated/exams/': typeof AuthenticatedExamsIndexRoute
   '/_authenticated/exams/$examId/results': typeof AuthenticatedExamsExamIdResultsRoute
+  '/_authenticated/exams/$examId/': typeof AuthenticatedExamsExamIdIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -106,9 +106,9 @@ export interface FileRouteTypes {
     | '/join'
     | '/history'
     | '/exam/$code'
-    | '/exams/$examId'
     | '/exams/'
     | '/exams/$examId/results'
+    | '/exams/$examId/'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -116,9 +116,9 @@ export interface FileRouteTypes {
     | '/join'
     | '/history'
     | '/exam/$code'
-    | '/exams/$examId'
     | '/exams'
     | '/exams/$examId/results'
+    | '/exams/$examId'
   id:
     | '__root__'
     | '/'
@@ -127,9 +127,9 @@ export interface FileRouteTypes {
     | '/join'
     | '/_authenticated/history'
     | '/exam/$code'
-    | '/_authenticated/exams/$examId'
     | '/_authenticated/exams/'
     | '/_authenticated/exams/$examId/results'
+    | '/_authenticated/exams/$examId/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -191,47 +191,35 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedExamsIndexRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
-    '/_authenticated/exams/$examId': {
-      id: '/_authenticated/exams/$examId'
+    '/_authenticated/exams/$examId/': {
+      id: '/_authenticated/exams/$examId/'
       path: '/exams/$examId'
-      fullPath: '/exams/$examId'
-      preLoaderRoute: typeof AuthenticatedExamsExamIdRouteImport
+      fullPath: '/exams/$examId/'
+      preLoaderRoute: typeof AuthenticatedExamsExamIdIndexRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
     '/_authenticated/exams/$examId/results': {
       id: '/_authenticated/exams/$examId/results'
-      path: '/results'
+      path: '/exams/$examId/results'
       fullPath: '/exams/$examId/results'
       preLoaderRoute: typeof AuthenticatedExamsExamIdResultsRouteImport
-      parentRoute: typeof AuthenticatedExamsExamIdRoute
+      parentRoute: typeof AuthenticatedRouteRoute
     }
   }
 }
 
-interface AuthenticatedExamsExamIdRouteChildren {
-  AuthenticatedExamsExamIdResultsRoute: typeof AuthenticatedExamsExamIdResultsRoute
-}
-
-const AuthenticatedExamsExamIdRouteChildren: AuthenticatedExamsExamIdRouteChildren =
-  {
-    AuthenticatedExamsExamIdResultsRoute: AuthenticatedExamsExamIdResultsRoute,
-  }
-
-const AuthenticatedExamsExamIdRouteWithChildren =
-  AuthenticatedExamsExamIdRoute._addFileChildren(
-    AuthenticatedExamsExamIdRouteChildren,
-  )
-
 interface AuthenticatedRouteRouteChildren {
   AuthenticatedHistoryRoute: typeof AuthenticatedHistoryRoute
-  AuthenticatedExamsExamIdRoute: typeof AuthenticatedExamsExamIdRouteWithChildren
   AuthenticatedExamsIndexRoute: typeof AuthenticatedExamsIndexRoute
+  AuthenticatedExamsExamIdResultsRoute: typeof AuthenticatedExamsExamIdResultsRoute
+  AuthenticatedExamsExamIdIndexRoute: typeof AuthenticatedExamsExamIdIndexRoute
 }
 
 const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedHistoryRoute: AuthenticatedHistoryRoute,
-  AuthenticatedExamsExamIdRoute: AuthenticatedExamsExamIdRouteWithChildren,
   AuthenticatedExamsIndexRoute: AuthenticatedExamsIndexRoute,
+  AuthenticatedExamsExamIdResultsRoute: AuthenticatedExamsExamIdResultsRoute,
+  AuthenticatedExamsExamIdIndexRoute: AuthenticatedExamsExamIdIndexRoute,
 }
 
 const AuthenticatedRouteRouteWithChildren =
@@ -247,13 +235,3 @@ const rootRouteChildren: RootRouteChildren = {
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
-
-import type { getRouter } from './router.tsx'
-import type { startInstance } from './start.ts'
-declare module '@tanstack/react-start' {
-  interface Register {
-    ssr: true
-    router: Awaited<ReturnType<typeof getRouter>>
-    config: Awaited<ReturnType<typeof startInstance.getOptions>>
-  }
-}
