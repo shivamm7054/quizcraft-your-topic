@@ -292,8 +292,10 @@ function ResultsPage() {
               );
             })}
           </div>
+          </>
         )}
       </div>
     </div>
   );
+
 }
