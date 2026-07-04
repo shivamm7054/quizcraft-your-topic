@@ -184,6 +184,9 @@ function ResultsPage() {
             </CardContent>
           </Card>
         ) : (
+          <>
+            <AnalyticsCard submissions={submissions} questions={questions} />
+
           <div className="space-y-3">
             {submissions.map((s, idx) => {
               const answers = (s.answers as unknown as (number | null)[]) ?? [];
