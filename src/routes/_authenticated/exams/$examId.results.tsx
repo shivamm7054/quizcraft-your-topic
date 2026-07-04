@@ -184,6 +184,9 @@ function ResultsPage() {
             </CardContent>
           </Card>
         ) : (
+          <>
+            <AnalyticsCard submissions={submissions} questions={questions} />
+
           <div className="space-y-3">
             {submissions.map((s, idx) => {
               const answers = (s.answers as unknown as (number | null)[]) ?? [];
@@ -289,8 +292,153 @@ function ResultsPage() {
               );
             })}
           </div>
+          </>
         )}
       </div>
     </div>
   );
+
 }
+
+type Submission = {
+  id: string;
+  student_name: string;
+  score: number;
+  total_questions: number;
+  answers: unknown;
+  submitted_at: string;
+};
+
+function AnalyticsCard({
+  submissions,
+  questions,
+}: {
+  submissions: Submission[];
+  questions: Question[];
+}) {
+  const n = submissions.length;
+  const percents = submissions.map((s) => (s.score / s.total_questions) * 100);
+  const avg = percents.reduce((a, b) => a + b, 0) / n;
+  const high = Math.max(...percents);
+  const low = Math.min(...percents);
+  const sorted = [...percents].sort((a, b) => a - b);
+  const median =
+    n % 2 === 0 ? (sorted[n / 2 - 1] + sorted[n / 2]) / 2 : sorted[Math.floor(n / 2)];
+  const passRate = (percents.filter((p) => p >= 50).length / n) * 100;
+
+  const perQuestion = questions.map((q, qi) => {
+    let correct = 0;
+    let unanswered = 0;
+    const optionCounts = new Array(q.options.length).fill(0) as number[];
+    for (const s of submissions) {
+      const a = (s.answers as (number | null)[] | undefined)?.[qi];
+      if (a === null || a === undefined) unanswered++;
+      else {
+        optionCounts[a] = (optionCounts[a] ?? 0) + 1;
+        if (a === q.correctIndex) correct++;
+      }
+    }
+    return {
+      correct,
+      unanswered,
+      optionCounts,
+      pct: Math.round((correct / n) * 100),
+    };
+  });
+
+  const hardest = perQuestion
+    .map((p, i) => ({ i, pct: p.pct }))
+    .sort((a, b) => a.pct - b.pct)
+    .slice(0, 3);
+
+  return (
+    <Card className="mb-4">
+      <CardHeader>
+        <CardTitle className="text-lg">Overall analytics</CardTitle>
+        <CardDescription>Aggregate performance across all {n} students.</CardDescription>
+      </CardHeader>
+      <CardContent className="space-y-6">
+        <div className="grid grid-cols-2 gap-3 sm:grid-cols-5">
+          <Stat label="Average" value={`${Math.round(avg)}%`} />
+          <Stat label="Median" value={`${Math.round(median)}%`} />
+          <Stat label="Highest" value={`${Math.round(high)}%`} />
+          <Stat label="Lowest" value={`${Math.round(low)}%`} />
+          <Stat label="Pass rate" value={`${Math.round(passRate)}%`} hint="≥ 50%" />
+        </div>
+
+        <div>
+          <h3 className="mb-2 text-sm font-semibold">Per-question correctness</h3>
+          <div className="space-y-2">
+            {perQuestion.map((p, qi) => (
+              <div key={qi} className="rounded-lg border p-3">
+                <div className="mb-1 flex items-start justify-between gap-3 text-sm">
+                  <span className="line-clamp-1">
+                    <span className="font-mono text-muted-foreground">Q{qi + 1}.</span>{" "}
+                    {questions[qi].question}
+                  </span>
+                  <span
+                    className={`shrink-0 font-semibold ${
+                      p.pct >= 70
+                        ? "text-green-600"
+                        : p.pct >= 40
+                          ? "text-amber-600"
+                          : "text-destructive"
+                    }`}
+                  >
+                    {p.pct}%
+                  </span>
+                </div>
+                <div className="h-2 overflow-hidden rounded-full bg-muted">
+                  <div
+                    className={`h-full ${
+                      p.pct >= 70
+                        ? "bg-green-500"
+                        : p.pct >= 40
+                          ? "bg-amber-500"
+                          : "bg-destructive"
+                    }`}
+                    style={{ width: `${p.pct}%` }}
+                  />
+                </div>
+                <div className="mt-2 flex flex-wrap gap-x-4 gap-y-1 text-xs text-muted-foreground">
+                  {questions[qi].options.map((opt, oi) => (
+                    <span key={oi} className={oi === questions[qi].correctIndex ? "text-green-600" : ""}>
+                      {String.fromCharCode(65 + oi)}: {p.optionCounts[oi]}
+                      {oi === questions[qi].correctIndex && " ✓"}
+                    </span>
+                  ))}
+                  {p.unanswered > 0 && <span>Skipped: {p.unanswered}</span>}
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {hardest.length > 0 && (
+          <div>
+            <h3 className="mb-2 text-sm font-semibold">Hardest questions</h3>
+            <ul className="space-y-1 text-sm text-muted-foreground">
+              {hardest.map((h) => (
+                <li key={h.i}>
+                  <span className="font-mono">Q{h.i + 1}</span> — {h.pct}% correct ·{" "}
+                  <span className="text-foreground">{questions[h.i].question}</span>
+                </li>
+              ))}
+            </ul>
+          </div>
+        )}
+      </CardContent>
+    </Card>
+  );
+}
+
+function Stat({ label, value, hint }: { label: string; value: string; hint?: string }) {
+  return (
+    <div className="rounded-lg border p-3">
+      <p className="text-xs uppercase text-muted-foreground">{label}</p>
+      <p className="mt-1 text-2xl font-bold">{value}</p>
+      {hint && <p className="text-[10px] text-muted-foreground">{hint}</p>}
+    </div>
+  );
+}
+
