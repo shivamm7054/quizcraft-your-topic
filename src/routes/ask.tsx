@@ -1,7 +1,7 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { useMutation } from "@tanstack/react-query";
-import { Search, Sparkles, Loader2, ArrowLeft, BookOpen } from "lucide-react";
+import { Search, Sparkles, Loader2, ArrowLeft, BookOpen, Clock, X, Trash2 } from "lucide-react";
 import { askQuestion, type AskAnswer } from "@/lib/ask.functions";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -28,15 +28,60 @@ export const Route = createFileRoute("/ask")({
   component: AskPage,
 });
 
+const RECENT_KEY = "ask-recent-searches";
+const RECENT_MAX = 10;
+
+function loadRecent(): string[] {
+  if (typeof window === "undefined") return [];
+  try {
+    const raw = window.localStorage.getItem(RECENT_KEY);
+    if (!raw) return [];
+    const arr = JSON.parse(raw);
+    return Array.isArray(arr) ? arr.filter((x) => typeof x === "string").slice(0, RECENT_MAX) : [];
+  } catch {
+    return [];
+  }
+}
+
 function AskPage() {
   const { q } = Route.useSearch();
   const navigate = useNavigate({ from: "/ask" });
   const [query, setQuery] = useState(q);
   const [answer, setAnswer] = useState<AskAnswer | null>(null);
+  const [recent, setRecent] = useState<string[]>([]);
+
+  useEffect(() => {
+    setRecent(loadRecent());
+  }, []);
+
+  const persistRecent = (next: string[]) => {
+    setRecent(next);
+    try {
+      window.localStorage.setItem(RECENT_KEY, JSON.stringify(next));
+    } catch {
+      // ignore quota errors
+    }
+  };
+
+  const addRecent = (value: string) => {
+    const v = value.trim();
+    if (!v) return;
+    const next = [v, ...recent.filter((r) => r.toLowerCase() !== v.toLowerCase())].slice(0, RECENT_MAX);
+    persistRecent(next);
+  };
+
+  const removeRecent = (value: string) => {
+    persistRecent(recent.filter((r) => r !== value));
+  };
+
+  const clearRecent = () => persistRecent([]);
 
   const mutation = useMutation({
     mutationFn: (question: string) => askQuestion({ data: { question } }),
-    onSuccess: (data) => setAnswer(data),
+    onSuccess: (data, question) => {
+      setAnswer(data);
+      addRecent(question);
+    },
     onError: (e: Error) => toast.error(e.message || "Failed to get an answer"),
   });
 
@@ -47,6 +92,7 @@ function AskPage() {
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [q]);
+
 
   const submit = (e: React.FormEvent) => {
     e.preventDefault();
