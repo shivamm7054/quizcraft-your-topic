@@ -1,7 +1,7 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useState } from "react";
 import { useMutation } from "@tanstack/react-query";
-import { Brain, Sparkles, RotateCcw, Check, X, Loader2, LogIn, LogOut, History, Users, KeyRound } from "lucide-react";
+import { Brain, Sparkles, RotateCcw, Check, X, Loader2, LogIn, LogOut, History, Users, KeyRound, Search } from "lucide-react";
 import { generateQuiz, type QuizQuestion } from "@/lib/quiz.functions";
 import { saveQuizResult } from "@/lib/quiz-results.functions";
 import { supabase } from "@/integrations/supabase/client";
@@ -127,6 +127,9 @@ function Home() {
             <span className="text-lg font-semibold tracking-tight">QuizForge</span>
           </div>
           <nav className="flex items-center gap-1 sm:gap-2">
+            <Button asChild variant="ghost" size="sm">
+              <Link to="/ask"><Search className="mr-2 h-4 w-4" /> Ask AI</Link>
+            </Button>
             <Button asChild variant="ghost" size="sm">
               <Link to="/join"><KeyRound className="mr-2 h-4 w-4" /> Join Exam</Link>
             </Button>
