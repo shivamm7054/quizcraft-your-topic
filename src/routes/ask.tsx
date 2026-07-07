@@ -1,7 +1,7 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { useMutation } from "@tanstack/react-query";
-import { Search, Sparkles, Loader2, ArrowLeft, BookOpen } from "lucide-react";
+import { Search, Sparkles, Loader2, ArrowLeft, BookOpen, Clock, X, Trash2 } from "lucide-react";
 import { askQuestion, type AskAnswer } from "@/lib/ask.functions";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -28,15 +28,60 @@ export const Route = createFileRoute("/ask")({
   component: AskPage,
 });
 
+const RECENT_KEY = "ask-recent-searches";
+const RECENT_MAX = 10;
+
+function loadRecent(): string[] {
+  if (typeof window === "undefined") return [];
+  try {
+    const raw = window.localStorage.getItem(RECENT_KEY);
+    if (!raw) return [];
+    const arr = JSON.parse(raw);
+    return Array.isArray(arr) ? arr.filter((x) => typeof x === "string").slice(0, RECENT_MAX) : [];
+  } catch {
+    return [];
+  }
+}
+
 function AskPage() {
   const { q } = Route.useSearch();
   const navigate = useNavigate({ from: "/ask" });
   const [query, setQuery] = useState(q);
   const [answer, setAnswer] = useState<AskAnswer | null>(null);
+  const [recent, setRecent] = useState<string[]>([]);
+
+  useEffect(() => {
+    setRecent(loadRecent());
+  }, []);
+
+  const persistRecent = (next: string[]) => {
+    setRecent(next);
+    try {
+      window.localStorage.setItem(RECENT_KEY, JSON.stringify(next));
+    } catch {
+      // ignore quota errors
+    }
+  };
+
+  const addRecent = (value: string) => {
+    const v = value.trim();
+    if (!v) return;
+    const next = [v, ...recent.filter((r) => r.toLowerCase() !== v.toLowerCase())].slice(0, RECENT_MAX);
+    persistRecent(next);
+  };
+
+  const removeRecent = (value: string) => {
+    persistRecent(recent.filter((r) => r !== value));
+  };
+
+  const clearRecent = () => persistRecent([]);
 
   const mutation = useMutation({
     mutationFn: (question: string) => askQuestion({ data: { question } }),
-    onSuccess: (data) => setAnswer(data),
+    onSuccess: (data, question) => {
+      setAnswer(data);
+      addRecent(question);
+    },
     onError: (e: Error) => toast.error(e.message || "Failed to get an answer"),
   });
 
@@ -47,6 +92,7 @@ function AskPage() {
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [q]);
+
 
   const submit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -108,6 +154,46 @@ function AskPage() {
             </Button>
           </div>
         </form>
+
+        {!hasResults && recent.length > 0 && (
+          <div className="mt-8 w-full">
+            <div className="mb-2 flex items-center justify-between">
+              <h3 className="flex items-center gap-2 text-sm font-semibold text-muted-foreground">
+                <Clock className="h-4 w-4" /> Recent searches
+              </h3>
+              <Button variant="ghost" size="sm" onClick={clearRecent} className="text-xs text-muted-foreground">
+                <Trash2 className="mr-1 h-3.5 w-3.5" /> Clear all
+              </Button>
+            </div>
+            <Card>
+              <CardContent className="p-2">
+                <ul className="divide-y divide-border">
+                  {recent.map((r) => (
+                    <li key={r} className="group flex items-center gap-2 px-2">
+                      <button
+                        type="button"
+                        onClick={() => navigate({ search: { q: r } })}
+                        className="flex flex-1 items-center gap-3 py-2.5 text-left text-sm hover:text-primary"
+                      >
+                        <Clock className="h-4 w-4 shrink-0 text-muted-foreground" />
+                        <span className="truncate">{r}</span>
+                      </button>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="h-7 w-7 opacity-60 hover:opacity-100"
+                        onClick={() => removeRecent(r)}
+                        aria-label={`Remove ${r}`}
+                      >
+                        <X className="h-3.5 w-3.5" />
+                      </Button>
+                    </li>
+                  ))}
+                </ul>
+              </CardContent>
+            </Card>
+          </div>
+        )}
 
         {hasResults && (
           <div className="mt-8 space-y-6">
