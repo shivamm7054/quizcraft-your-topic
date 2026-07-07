@@ -11,6 +11,7 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as JoinRouteImport } from './routes/join'
 import { Route as AuthRouteImport } from './routes/auth'
+import { Route as AskRouteImport } from './routes/ask'
 import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/route'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as ExamCodeRouteImport } from './routes/exam.$code'
@@ -28,6 +29,11 @@ const JoinRoute = JoinRouteImport.update({
 const AuthRoute = AuthRouteImport.update({
   id: '/auth',
   path: '/auth',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AskRoute = AskRouteImport.update({
+  id: '/ask',
+  path: '/ask',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AuthenticatedRouteRoute = AuthenticatedRouteRouteImport.update({
@@ -75,6 +81,7 @@ const AuthenticatedExamsExamIdResultsRoute =
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/ask': typeof AskRoute
   '/auth': typeof AuthRoute
   '/join': typeof JoinRoute
   '/history': typeof AuthenticatedHistoryRoute
@@ -86,6 +93,7 @@ export interface FileRoutesByFullPath {
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/ask': typeof AskRoute
   '/auth': typeof AuthRoute
   '/join': typeof JoinRoute
   '/history': typeof AuthenticatedHistoryRoute
@@ -98,6 +106,7 @@ export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/_authenticated': typeof AuthenticatedRouteRouteWithChildren
+  '/ask': typeof AskRoute
   '/auth': typeof AuthRoute
   '/join': typeof JoinRoute
   '/_authenticated/history': typeof AuthenticatedHistoryRoute
@@ -111,6 +120,7 @@ export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
+    | '/ask'
     | '/auth'
     | '/join'
     | '/history'
@@ -122,6 +132,7 @@ export interface FileRouteTypes {
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
+    | '/ask'
     | '/auth'
     | '/join'
     | '/history'
@@ -133,6 +144,7 @@ export interface FileRouteTypes {
     | '__root__'
     | '/'
     | '/_authenticated'
+    | '/ask'
     | '/auth'
     | '/join'
     | '/_authenticated/history'
@@ -146,6 +158,7 @@ export interface FileRouteTypes {
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AuthenticatedRouteRoute: typeof AuthenticatedRouteRouteWithChildren
+  AskRoute: typeof AskRoute
   AuthRoute: typeof AuthRoute
   JoinRoute: typeof JoinRoute
   ExamCodeRoute: typeof ExamCodeRoute
@@ -165,6 +178,13 @@ declare module '@tanstack/react-router' {
       path: '/auth'
       fullPath: '/auth'
       preLoaderRoute: typeof AuthRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/ask': {
+      id: '/ask'
+      path: '/ask'
+      fullPath: '/ask'
+      preLoaderRoute: typeof AskRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/_authenticated': {
@@ -261,6 +281,7 @@ const AuthenticatedRouteRouteWithChildren =
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AuthenticatedRouteRoute: AuthenticatedRouteRouteWithChildren,
+  AskRoute: AskRoute,
   AuthRoute: AuthRoute,
   JoinRoute: JoinRoute,
   ExamCodeRoute: ExamCodeRoute,
@@ -268,13 +289,3 @@ const rootRouteChildren: RootRouteChildren = {
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
-
-import type { getRouter } from './router.tsx'
-import type { startInstance } from './start.ts'
-declare module '@tanstack/react-start' {
-  interface Register {
-    ssr: true
-    router: Awaited<ReturnType<typeof getRouter>>
-    config: Awaited<ReturnType<typeof startInstance.getOptions>>
-  }
-}
