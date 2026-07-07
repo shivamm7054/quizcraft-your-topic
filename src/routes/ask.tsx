@@ -155,6 +155,46 @@ function AskPage() {
           </div>
         </form>
 
+        {!hasResults && recent.length > 0 && (
+          <div className="mt-8 w-full">
+            <div className="mb-2 flex items-center justify-between">
+              <h3 className="flex items-center gap-2 text-sm font-semibold text-muted-foreground">
+                <Clock className="h-4 w-4" /> Recent searches
+              </h3>
+              <Button variant="ghost" size="sm" onClick={clearRecent} className="text-xs text-muted-foreground">
+                <Trash2 className="mr-1 h-3.5 w-3.5" /> Clear all
+              </Button>
+            </div>
+            <Card>
+              <CardContent className="p-2">
+                <ul className="divide-y divide-border">
+                  {recent.map((r) => (
+                    <li key={r} className="group flex items-center gap-2 px-2">
+                      <button
+                        type="button"
+                        onClick={() => navigate({ search: { q: r } })}
+                        className="flex flex-1 items-center gap-3 py-2.5 text-left text-sm hover:text-primary"
+                      >
+                        <Clock className="h-4 w-4 shrink-0 text-muted-foreground" />
+                        <span className="truncate">{r}</span>
+                      </button>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="h-7 w-7 opacity-60 hover:opacity-100"
+                        onClick={() => removeRecent(r)}
+                        aria-label={`Remove ${r}`}
+                      >
+                        <X className="h-3.5 w-3.5" />
+                      </Button>
+                    </li>
+                  ))}
+                </ul>
+              </CardContent>
+            </Card>
+          </div>
+        )}
+
         {hasResults && (
           <div className="mt-8 space-y-6">
             {mutation.isPending && (
