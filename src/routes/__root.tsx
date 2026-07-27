@@ -77,23 +77,23 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
     meta: [
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1" },
-      { title: "Lovable App" },
-      { name: "description", content: "Topic Quiz Master creates custom MCQ quizzes on any user-specified topic." },
-      { name: "author", content: "Lovable" },
-      { property: "og:title", content: "Lovable App" },
-      { property: "og:description", content: "Topic Quiz Master creates custom MCQ quizzes on any user-specified topic." },
+      { title: "QuizForge — AI quiz & exam platform" },
+      { name: "description", content: "QuizForge turns any topic into AI-generated MCQ exams with instant results, live multiplayer exams and analytics." },
+      { name: "author", content: "QuizForge" },
+      { property: "og:title", content: "QuizForge — AI quiz & exam platform" },
+      { property: "og:description", content: "QuizForge turns any topic into AI-generated MCQ exams with instant results, live multiplayer exams and analytics." },
       { property: "og:type", content: "website" },
-      { name: "twitter:card", content: "summary" },
-      { name: "twitter:site", content: "@Lovable" },
-      { name: "twitter:title", content: "Lovable App" },
-      { name: "twitter:description", content: "Topic Quiz Master creates custom MCQ quizzes on any user-specified topic." },
-      { property: "og:image", content: "https://pub-bb2e103a32db4e198524a2e9ed8f35b4.r2.dev/ffabb78c-2b3a-486f-af8f-d3e0cc3bf937/id-preview-6c394258--f38b59e0-9bef-4368-8426-00666a630d4a.lovable.app-1782885915215.png" },
-      { name: "twitter:image", content: "https://pub-bb2e103a32db4e198524a2e9ed8f35b4.r2.dev/ffabb78c-2b3a-486f-af8f-d3e0cc3bf937/id-preview-6c394258--f38b59e0-9bef-4368-8426-00666a630d4a.lovable.app-1782885915215.png" },
+      { name: "twitter:card", content: "summary_large_image" },
+      { name: "twitter:title", content: "QuizForge — AI quiz & exam platform" },
+      { name: "twitter:description", content: "QuizForge turns any topic into AI-generated MCQ exams with instant results, live multiplayer exams and analytics." },
     ],
     links: [
+      { rel: "stylesheet", href: appCss },
+      { rel: "preconnect", href: "https://fonts.googleapis.com" },
+      { rel: "preconnect", href: "https://fonts.gstatic.com", crossOrigin: "anonymous" },
       {
         rel: "stylesheet",
-        href: appCss,
+        href: "https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Inter:wght@400;500;600;700&display=swap",
       },
     ],
   }),
@@ -103,11 +103,14 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
   errorComponent: ErrorComponent,
 });
 
+const themeScript = `(function(){try{var t=localStorage.getItem("qf-theme");var d=t?t==="dark":true;document.documentElement.classList.toggle("dark",d);}catch(e){}})();`;
+
 function RootShell({ children }: { children: ReactNode }) {
   return (
-    <html lang="en">
+    <html lang="en" className="dark">
       <head>
         <HeadContent />
+        <script dangerouslySetInnerHTML={{ __html: themeScript }} />
       </head>
       <body>
         {children}
@@ -116,6 +119,7 @@ function RootShell({ children }: { children: ReactNode }) {
     </html>
   );
 }
+
 
 function RootComponent() {
   const { queryClient } = Route.useRouteContext();
