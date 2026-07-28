@@ -1,4 +1,5 @@
 import { motion } from "framer-motion";
+import { Link } from "@tanstack/react-router";
 import {
   Sparkles,
   Zap,
@@ -6,6 +7,7 @@ import {
   MessageSquareText,
   BarChart3,
   Quote,
+  ArrowRight,
 } from "lucide-react";
 import {
   Accordion,
