@@ -1,4 +1,5 @@
 import { motion } from "framer-motion";
+import { Link } from "@tanstack/react-router";
 import {
   Sparkles,
   Zap,
@@ -6,6 +7,7 @@ import {
   MessageSquareText,
   BarChart3,
   Quote,
+  ArrowRight,
 } from "lucide-react";
 import {
   Accordion,
@@ -51,28 +53,39 @@ const FEATURES = [
     icon: Sparkles,
     title: "AI Quiz Generator",
     body: "Type any topic and get a well-balanced multiple-choice exam in seconds, at the difficulty you choose.",
+    to: "/",
+    hash: "create",
+    cta: "Generate a quiz",
   },
   {
     icon: Zap,
     title: "Instant Results",
     body: "Auto-scored the moment you submit, with a clean breakdown of every right and wrong answer.",
+    to: "/history",
+    cta: "View your results",
   },
   {
     icon: Users,
     title: "Multiplayer Exams",
     body: "Host a timed exam, share a join code, and let a whole classroom take it at once — no accounts needed.",
+    to: "/exams",
+    cta: "Host an exam",
   },
   {
     icon: MessageSquareText,
     title: "AI Explanations",
     body: "Every question comes with a clear explanation, so a quiz becomes an actual learning moment.",
+    to: "/ask",
+    cta: "Ask AI anything",
   },
   {
     icon: BarChart3,
     title: "Analytics Dashboard",
     body: "Per-student scores, hardest questions, option distribution and CSV or PDF exports for hosts.",
+    to: "/exams",
+    cta: "Open analytics",
   },
-];
+] as const;
 
 export function Features() {
   return (
@@ -84,21 +97,30 @@ export function Features() {
       />
       <div className="mt-14 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
         {FEATURES.map((f, i) => (
-          <motion.article
+          <motion.div
             key={f.title}
             initial="hidden"
             whileInView="show"
             viewport={{ once: true, margin: "-60px" }}
             variants={fadeUp}
             transition={{ duration: 0.5, delay: i * 0.07, ease: [0.22, 1, 0.36, 1] }}
-            className="group glass lift rounded-3xl p-6"
           >
-            <span className="grid h-12 w-12 place-items-center rounded-2xl bg-linear-to-br from-brand/25 to-cyan/25 text-brand-glow ring-1 ring-border transition-transform duration-300 group-hover:scale-110">
-              <f.icon className="h-6 w-6" />
-            </span>
-            <h3 className="mt-5 text-lg font-bold">{f.title}</h3>
-            <p className="mt-2 text-sm leading-relaxed text-muted-foreground">{f.body}</p>
-          </motion.article>
+            <Link
+              to={f.to}
+              hash={"hash" in f ? (f as { hash?: string }).hash : undefined}
+              className="group glass lift block h-full rounded-3xl p-6 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand"
+            >
+              <span className="grid h-12 w-12 place-items-center rounded-2xl bg-linear-to-br from-brand/25 to-cyan/25 text-brand-glow ring-1 ring-border transition-transform duration-300 group-hover:scale-110">
+                <f.icon className="h-6 w-6" />
+              </span>
+              <h3 className="mt-5 text-lg font-bold">{f.title}</h3>
+              <p className="mt-2 text-sm leading-relaxed text-muted-foreground">{f.body}</p>
+              <span className="mt-4 inline-flex items-center gap-1 text-sm font-semibold text-brand-glow">
+                {f.cta}
+                <ArrowRight className="h-4 w-4 transition-transform duration-300 group-hover:translate-x-1" />
+              </span>
+            </Link>
+          </motion.div>
         ))}
         <motion.div
           initial="hidden"
@@ -112,17 +134,20 @@ export function Features() {
           <p className="mt-2 text-sm text-muted-foreground">
             No setup, no question banks to maintain. Describe the topic — QuizForge writes the exam.
           </p>
-          <a
-            href="#create"
-            className="mt-6 inline-flex items-center rounded-full bg-linear-to-r from-brand to-cyan px-5 py-2.5 text-sm font-semibold text-brand-foreground transition-transform duration-300 hover:scale-105"
+          <Link
+            to="/"
+            hash="create"
+            className="mt-6 inline-flex items-center gap-1 rounded-full bg-linear-to-r from-brand to-cyan px-5 py-2.5 text-sm font-semibold text-brand-foreground transition-transform duration-300 hover:scale-105"
           >
             Create a quiz
-          </a>
+            <ArrowRight className="h-4 w-4" />
+          </Link>
         </motion.div>
       </div>
     </section>
   );
 }
+
 
 const STATS = [
   { value: "10K+", label: "Quizzes generated" },
